@@ -1,54 +1,54 @@
-const mongoose = require("mongoose");
+const data = require('./data');
+const mongoose = require('mongoose');
+const Recipe = require('./models/Recipe.model');
 
-// Import of the model Recipe from './models/Recipe.model.js'
-const Recipe = require("./models/Recipe.model");
-//const LevelType = require("./models/Recipe.model").LevelType;
-// Import of the data from './data.json'
-const data = require("./data");
+const MONGODB_URI = 'mongodb://localhost:27017/recipe-app';
 
-const MONGODB_URI = "mongodb://localhost:27017/recipe-app";
 
-// Connection to the database "recipe-app"
 mongoose
   .connect(MONGODB_URI)
-  .then((x) => {
+  .then(x => {
     console.log(`Connected to the database: "${x.connection.name}"`);
-    // Before adding any recipes to the database, let's remove all existing ones
-    // return Recipe.deleteMany();
+
+    return Recipe.deleteMany()
   })
   .then(() => {
-    // Run your code here, after you have insured that the connection was made
-    Recipe.create({
-      name: "GhormeSabzi",
-      level: "Amateur Chef",
-      ingredients: [
-        "1/2 cup rice vinegar",
-        "5 tablespoons honey",
-        "1/3 cup soy sauce (such as Silver Swan®)",
-        "1/4 cup Asian (toasted) sesame oil",
-        "3 tablespoons Asian chili garlic sauce",
-        "3 tablespoons minced garlic",
-        "salt to taste",
-        "8 skinless, boneless chicken thighs",
-      ],
-      cuisine: "Persian",
-      dishType: "main_course",
+    console.log("All existing recipes deleted from the DB!!!")
+
+
+    const newRecipe = {
+      title: 'Mixto quente',
+      level: 'Easy Peasy',
+      ingredients: ['pão francês', 'queijo', 'presunto'],
+      cuisine: 'Brasileira',
+      dishType: 'snack',
       image:
-        "https://www.2nafare.com/wp-content/uploads/2015/01/ghormeh-sabzi-500x334.jpg",
-      duration: 120,
-      creator: "Chef Hesam",
-      created: Date.now(),
-    });
+        'http://culinaria.culturamix.com/blog/wp-content/gallery/misto-quente-3/Misto-Quente-6.jpg',
+      duration: 5,
+      creator: 'unknown'
+    };
+
+
+    return Recipe.create(newRecipe);
   })
-  .then(() => {
-    const status = Recipe.insertMany(data).then((status) => {
-      console.log(status);
-      console.log("Insert many has been successfully executed!");
-    });
+  .then(result => console.log(`Recipe created: ${result}`))
+  .then(() => Recipe.insertMany(data))
+  .then(result => {
+
+    console.log(`Created ${result.length} recipes`);
+    return Recipe.findOneAndUpdate({ title: 'Rigatoni alla Genovese' }, { duration: 100 }, { new: true })
   })
-  .then(() => {
-    Recipe.update;
+  .then(result => {
+    console.log(`Updated ${result.title} and new duration is: ${result.duration}`);
+
+    return Recipe.deleteOne({ title: 'Carrot Cake' })
   })
-  .catch((error) => {
-    console.error("Error connecting to the database", error);
-  });
+  .then((result) => {
+    console.log("The recipe was deleted", result);
+  })
+  .catch(error => {
+    console.error("Error: ", error);
+  })
+
+
+  .finally(() => mongoose.connection.close())
